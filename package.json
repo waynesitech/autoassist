@@ -1,0 +1,19 @@
+{
+  "name": "autoassist---car-towing-&-automotive-hub",
+  "private": true,
+  "version": "2.0.0",
+  "engines": {
+    "node": ">=18.0.0 <=20.x.x",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev:backend": "cd server && npm run dev",
+    "dev:mobile": "cd mobile && npm start",
+    "dev:all": "concurrently -n \"BACKEND,MOBILE\" -c \"cyan,magenta\" \"npm run dev:backend\" \"npm run dev:mobile\"",
+    "install:all": "npm install && cd server && npm install && cd ../mobile && npm install",
+    "build:backend": "cd server && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

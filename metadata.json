@@ -1,0 +1,7 @@
+{
+  "name": "AutoAssist - Car Towing & Automotive Hub",
+  "description": "A comprehensive automotive service platform offering car towing, AI-powered quotations, and a premium parts shop.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
