@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS quotations (
   quote_type ENUM('brief', 'detailed') NOT NULL DEFAULT 'brief',
   images TEXT,
   amount DECIMAL(10,2) NOT NULL,
+  admin_message TEXT,
   status ENUM('pending', 'completed', 'ongoing', 'cancelled') NOT NULL DEFAULT 'pending',
   date DATE NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
