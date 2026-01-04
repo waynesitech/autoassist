@@ -97,6 +97,33 @@ const QuotationDetailScreen: React.FC<QuotationDetailScreenProps> = ({
             </View>
           ) : quotation ? (
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+              {/* Admin Message - Show at the top if available */}
+              {quotation.adminMessage ? (
+                <View style={[styles.adminMessageCard, { 
+                  backgroundColor: isDarkMode ? 'rgba(249, 115, 22, 0.15)' : 'rgba(249, 115, 22, 0.1)',
+                  borderColor: isDarkMode ? 'rgba(249, 115, 22, 0.3)' : 'rgba(249, 115, 22, 0.2)',
+                }]}>
+                  <View style={styles.adminMessageHeader}>
+                    <Ionicons name="chatbubble-ellipses" size={20} color="#f97316" />
+                    <Text style={[styles.adminMessageTitle, { color: isDarkMode ? '#f97316' : '#f97316' }]}>
+                      Admin Message
+                    </Text>
+                  </View>
+                  <Text style={[styles.adminMessageText, { color: isDarkMode ? '#f1f5f9' : '#1e293b' }]}>
+                    {quotation.adminMessage}
+                  </Text>
+                </View>
+              ) : (
+                <View style={[styles.card, { backgroundColor: isDarkMode ? '#0f172a' : '#f1f5f9' }]}>
+                  <View style={styles.cardHeader}>
+                    <Ionicons name="information-circle-outline" size={18} color={isDarkMode ? '#64748b' : '#94a3b8'} style={{ marginRight: 8 }} />
+                    <Text style={[styles.cardTitle, { color: isDarkMode ? '#64748b' : '#94a3b8' }]}>
+                      No admin message available
+                    </Text>
+                  </View>
+                </View>
+              )}
+
               <View style={[styles.card, { backgroundColor: isDarkMode ? '#0f172a' : '#f1f5f9' }]}>
                 <View style={styles.cardHeader}>
                   <Text style={[styles.cardTitle, { color: isDarkMode ? '#f1f5f9' : '#1e293b' }]}>
@@ -166,19 +193,6 @@ const QuotationDetailScreen: React.FC<QuotationDetailScreenProps> = ({
                   </View>
                 )}
               </View>
-
-              {quotation.adminMessage && (
-                <View style={[styles.card, { backgroundColor: isDarkMode ? '#0f172a' : '#f1f5f9' }]}>
-                  <View style={styles.cardHeader}>
-                    <Text style={[styles.cardTitle, { color: isDarkMode ? '#f1f5f9' : '#1e293b' }]}>
-                      Admin Message
-                    </Text>
-                  </View>
-                  <Text style={[styles.messageText, { color: isDarkMode ? '#f1f5f9' : '#1e293b' }]}>
-                    {quotation.adminMessage}
-                  </Text>
-                </View>
-              )}
 
               {quotation.quoteType === 'detailed' && (
                 <TouchableOpacity
@@ -250,10 +264,32 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  adminMessageCard: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+  },
+  adminMessageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  adminMessageTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  adminMessageText: {
+    fontSize: 15,
+    lineHeight: 22,
   },
   detailRow: {
     flexDirection: 'row',

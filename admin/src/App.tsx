@@ -11,11 +11,12 @@ import ShopTransactions from './pages/ShopTransactions';
 import TowingTransactions from './pages/TowingTransactions';
 import QuotationTransactions from './pages/QuotationTransactions';
 import Vehicles from './pages/Vehicles';
+import Banners from './pages/Banners';
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename="/admin">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route
@@ -104,6 +105,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Vehicles />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/banners"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Banners />
                 </Layout>
               </ProtectedRoute>
             }

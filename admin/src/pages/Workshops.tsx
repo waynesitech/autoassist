@@ -78,7 +78,7 @@ const Workshops = () => {
   };
 
   const handleSelectImage = (imagePath: string) => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://autoassist.com.my:3002/api';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://autoassist.com.my/api';
     const baseUrl = API_BASE_URL.replace('/api', '');
     const filename = imagePath.split('/').pop() || imagePath;
     const imageUrl = `${baseUrl}/static/mobile/assets/img/${filename}`;
@@ -246,7 +246,7 @@ const Workshops = () => {
                     gap: '12px' 
                   }}>
                     {availableImages.map((img: any, index: number) => {
-                      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://autoassist.com.my:3002/api';
+                      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://autoassist.com.my/api';
                       const baseUrl = API_BASE_URL.replace('/api', '');
                       const imageUrl = `${baseUrl}/static/mobile/assets/img/${img.filename}`;
                       return (

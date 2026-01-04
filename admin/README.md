@@ -29,7 +29,7 @@ Modern admin dashboard for managing all AutoAssist modules with full CRUD operat
 2. **Configure API URL (optional):**
    Create a `.env` file:
    ```env
-   VITE_API_URL=http://autoassist.com.my:3002/api
+   VITE_API_URL=http://autoassist.com.my/api
    ```
 
 3. **Start development server:**
@@ -37,7 +37,7 @@ Modern admin dashboard for managing all AutoAssist modules with full CRUD operat
    npm run dev
    ```
 
-   The dashboard will open at `http://autoassist.com.my:3003`
+   The dashboard will open at `http://autoassist.com.my/admin`
 
 ## Project Structure
 
@@ -73,5 +73,5 @@ admin/
 
 ## API Connection
 
-The dashboard connects to the backend API at `http://autoassist.com.my:3002/api` by default. Make sure the backend server is running before using the dashboard.
+The dashboard connects to the backend API at `http://autoassist.com.my/api` by default. Make sure the backend server is running before using the dashboard.
 

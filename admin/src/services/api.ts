@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://autoassist.com.my:3002/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://autoassist.com.my/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -71,6 +71,18 @@ export const vehiclesAPI = {
 export const notificationsAPI = {
   get: (userId: number) => api.get(`/users/${userId}/notification-settings`),
   update: (userId: number, data: any) => api.put(`/users/${userId}/notification-settings`, data),
+};
+
+// Banners API
+export const bannersAPI = {
+  getAll: (activeOnly?: boolean) => {
+    const url = activeOnly ? '/banners?activeOnly=true' : '/banners';
+    return api.get(url);
+  },
+  getById: (id: number) => api.get(`/banners/${id}`),
+  create: (data: any) => api.post('/banners', data),
+  update: (id: number, data: any) => api.put(`/banners/${id}`, data),
+  delete: (id: number) => api.delete(`/banners/${id}`),
 };
 
 export default api;

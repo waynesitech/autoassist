@@ -23,6 +23,7 @@ const Layout = ({ children }: LayoutProps) => {
     { path: '/users', label: 'Users', icon: '👥' },
     { path: '/workshops', label: 'Workshops', icon: '🔧' },
     { path: '/products', label: 'Products', icon: '🛍️' },
+    { path: '/banners', label: 'Banners', icon: '🖼️' },
     { path: '/transactions/shop', label: 'Shop', icon: '🛒' },
     { path: '/transactions/towing', label: 'Towing', icon: '🚛' },
     { path: '/transactions/quotation', label: 'Quotation', icon: '📋' },

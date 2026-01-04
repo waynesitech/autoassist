@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://autoassist.com.my:3002/api';
+      const API_URL = import.meta.env.VITE_API_URL || 'http://autoassist.com.my/api';
       const response = await fetch(`${API_URL}/admin/login`, {
         method: 'POST',
         headers: {
