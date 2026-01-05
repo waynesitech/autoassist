@@ -68,9 +68,6 @@ const Login = () => {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-        <div className="login-footer">
-          <p>Default admin credentials: admin@autoassist.com / admin123</p>
-        </div>
       </div>
     </div>
   );

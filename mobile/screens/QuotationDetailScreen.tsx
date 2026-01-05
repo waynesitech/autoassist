@@ -36,6 +36,12 @@ const QuotationDetailScreen: React.FC<QuotationDetailScreenProps> = ({
     setLoading(true);
     try {
       const details = await api.getQuotationDetails(transactionId);
+      console.log('Quotation details loaded:', details);
+      console.log('Admin message:', details.adminMessage);
+      // Handle both camelCase and snake_case field names
+      if (!details.adminMessage && (details as any).admin_message) {
+        details.adminMessage = (details as any).admin_message;
+      }
       setQuotation(details);
     } catch (error) {
       console.error('Error loading quotation details:', error);
@@ -98,13 +104,13 @@ const QuotationDetailScreen: React.FC<QuotationDetailScreenProps> = ({
           ) : quotation ? (
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               {/* Admin Message - Show at the top if available */}
-              {quotation.adminMessage ? (
+              {quotation.adminMessage && quotation.adminMessage.trim() !== '' ? (
                 <View style={[styles.adminMessageCard, { 
                   backgroundColor: isDarkMode ? 'rgba(249, 115, 22, 0.15)' : 'rgba(249, 115, 22, 0.1)',
                   borderColor: isDarkMode ? 'rgba(249, 115, 22, 0.3)' : 'rgba(249, 115, 22, 0.2)',
                 }]}>
                   <View style={styles.adminMessageHeader}>
-                    <Ionicons name="chatbubble-ellipses" size={20} color="#f97316" />
+                    <Ionicons name="chatbubble-ellipses" size={20} color="#f97316" style={{ marginRight: 8 }} />
                     <Text style={[styles.adminMessageTitle, { color: isDarkMode ? '#f97316' : '#f97316' }]}>
                       Admin Message
                     </Text>
@@ -113,16 +119,7 @@ const QuotationDetailScreen: React.FC<QuotationDetailScreenProps> = ({
                     {quotation.adminMessage}
                   </Text>
                 </View>
-              ) : (
-                <View style={[styles.card, { backgroundColor: isDarkMode ? '#0f172a' : '#f1f5f9' }]}>
-                  <View style={styles.cardHeader}>
-                    <Ionicons name="information-circle-outline" size={18} color={isDarkMode ? '#64748b' : '#94a3b8'} style={{ marginRight: 8 }} />
-                    <Text style={[styles.cardTitle, { color: isDarkMode ? '#64748b' : '#94a3b8' }]}>
-                      No admin message available
-                    </Text>
-                  </View>
-                </View>
-              )}
+              ) : null}
 
               <View style={[styles.card, { backgroundColor: isDarkMode ? '#0f172a' : '#f1f5f9' }]}>
                 <View style={styles.cardHeader}>
@@ -281,7 +278,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
-    gap: 8,
   },
   adminMessageTitle: {
     fontSize: 16,
