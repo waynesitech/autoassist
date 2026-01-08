@@ -33,7 +33,10 @@ CREATE TABLE IF NOT EXISTS products (
   category VARCHAR(100) NOT NULL,
   image VARCHAR(500) NOT NULL,
   stock INT NOT NULL DEFAULT 0,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  workshop_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (workshop_id) REFERENCES workshops(id) ON DELETE SET NULL,
+  INDEX idx_workshop_id (workshop_id)
 );
 
 -- Users table

@@ -71,9 +71,42 @@ export async function initializeDatabase(): Promise<void> {
         category VARCHAR(100) NOT NULL,
         image VARCHAR(500) NOT NULL,
         stock INT NOT NULL DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        workshop_id INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (workshop_id) REFERENCES workshops(id) ON DELETE SET NULL,
+        INDEX idx_workshop_id (workshop_id)
       )
     `);
+
+    // Add workshop_id column if it doesn't exist (for existing databases)
+    try {
+      await pool.query('ALTER TABLE products ADD COLUMN workshop_id INT');
+    } catch (error: any) {
+      // Column already exists, ignore error
+      if (!error.message?.includes('Duplicate column name')) {
+        console.warn('Could not add workshop_id column:', error.message);
+      }
+    }
+
+    // Add foreign key constraint if it doesn't exist
+    try {
+      await pool.query('ALTER TABLE products ADD CONSTRAINT fk_products_workshop FOREIGN KEY (workshop_id) REFERENCES workshops(id) ON DELETE SET NULL');
+    } catch (error: any) {
+      // Constraint already exists, ignore error
+      if (!error.message?.includes('Duplicate key name') && !error.message?.includes('already exists')) {
+        console.warn('Could not add foreign key constraint:', error.message);
+      }
+    }
+
+    // Add index if it doesn't exist
+    try {
+      await pool.query('ALTER TABLE products ADD INDEX idx_workshop_id (workshop_id)');
+    } catch (error: any) {
+      // Index already exists, ignore error
+      if (!error.message?.includes('Duplicate key name') && !error.message?.includes('already exists')) {
+        console.warn('Could not add workshop_id index:', error.message);
+      }
+    }
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (

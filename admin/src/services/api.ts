@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://autoassist.com.my/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://autoassist.com.my:3002/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -40,6 +40,17 @@ export const productsAPI = {
   create: (data: any) => api.post('/products', data),
   update: (id: number, data: any) => api.put(`/products/${id}`, data),
   delete: (id: number) => api.delete(`/products/${id}`),
+  getAvailableImages: () => api.get('/workshops/images'), // Reuse workshops images endpoint
+  uploadImage: (file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    // Create a new axios instance without default headers for file uploads
+    // This ensures FormData is sent with the correct Content-Type (multipart/form-data with boundary)
+    return axios.post(`${API_BASE_URL}/products/upload`, formData, {
+      timeout: 30000, // 30 second timeout for file uploads
+      // Don't set Content-Type - axios will automatically set it with boundary for FormData
+    });
+  },
 };
 
 // Transactions API

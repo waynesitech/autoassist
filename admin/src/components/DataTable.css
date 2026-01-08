@@ -40,7 +40,7 @@
 }
 
 .actions-cell {
-  display: flex;
+  display: grid;
   gap: 8px;
 }
 
