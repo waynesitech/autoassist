@@ -28,14 +28,26 @@
         "backgroundColor": "#020617"
       },
       "package": "com.autoassist.mobile",
+      "versionCode": 1,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION"
-      ]
+      ],
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "scheme": "autoassist"
+    "scheme": "autoassist",
+    "plugins": [
+      "expo-font",
+      "expo-system-ui"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "083e9654-2f06-484c-9ae1-09fc0864a8ca"
+      }
+    },
+    "owner": "waynewan"
   }
 }

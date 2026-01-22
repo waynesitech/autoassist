@@ -282,6 +282,10 @@ export async function initializeDatabase(): Promise<void> {
     `);
 
     // Clear all workshops and insert only the correct one
+    // Delete child records first to avoid foreign key constraint violations
+    await pool.query('DELETE FROM quotations');
+    await pool.query('DELETE FROM towing_requests');
+    await pool.query('DELETE FROM shop_orders');
     await pool.query('DELETE FROM workshops');
     await pool.query(`
       INSERT INTO workshops (name, rating, location, icon) VALUES

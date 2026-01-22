@@ -1,18 +1,33 @@
+import { Platform } from 'react-native';
 import { Workshop, Transaction, Product, CartItem, User, CarInfo, AdSlide } from '../types';
 
-// For mobile devices, use your computer's local IP address instead of localhost
-// You can find it by running: ifconfig | grep "inet " | grep -v 127.0.0.1
-// On macOS: ifconfig | grep "inet " | grep -v 127.0.0.1
-// Update this IP address to match your computer's local network IP
-// You can also set EXPO_PUBLIC_API_URL in a .env file in the mobile directory
 // API Base URL Configuration
-// You can override this by setting EXPO_PUBLIC_API_URL in a .env file
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://autoassist.com.my:3002';
+// Always uses production URL
+// You can override by setting EXPO_PUBLIC_API_URL in mobile/.env file
+function getApiBaseUrl(): string {
+  // First, check if explicitly set via environment variable (for override)
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+  if (process.env.API_BASE_URL) {
+    return process.env.API_BASE_URL;
+  }
+  
+  // Always use production URL
+  return 'http://autoassist.com.my';
+}
 
-// Log API URL for debugging (only in development)
+const API_BASE_URL = getApiBaseUrl();
+
+// Log API URL and environment for debugging (only in development)
 declare const __DEV__: boolean;
 if (typeof __DEV__ !== 'undefined' && __DEV__) {
+  console.log('=== API Configuration ===');
+  console.log('Platform:', Platform.OS);
   console.log('API Base URL:', API_BASE_URL);
+  console.log('EXPO_PUBLIC_API_URL:', process.env.EXPO_PUBLIC_API_URL || 'not set');
+  console.log('API_BASE_URL env:', process.env.API_BASE_URL || 'not set');
+  console.log('========================');
 }
 
 class AutoAssistAPI {
@@ -67,14 +82,42 @@ class AutoAssistAPI {
       return data;
     } catch (error: any) {
       console.error(`API request failed for ${endpoint}:`, error);
+      console.error(`Full error details:`, {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        url: `${API_BASE_URL}${endpoint}`,
+        platform: Platform.OS
+      });
       
       // Handle network errors and timeouts
-      if (error.message === 'Network request failed' || error.message === 'Failed to fetch' || error.message.includes('timeout')) {
+      if (error.message === 'Network request failed' || error.message === 'Failed to fetch' || error.message.includes('timeout') || error.message.includes('NetworkError')) {
         let errorMsg = '';
+        const isProduction = API_BASE_URL.includes('autoassist.com.my') || API_BASE_URL.includes('167.71.199.165');
+        
         if (error.message.includes('timeout')) {
-          errorMsg = `Connection timeout after 10 seconds.\n\nTrying to connect to: ${API_BASE_URL}\n\nTroubleshooting:\n1. Ensure backend server is running: cd backend && npm run dev\n2. Check if server is accessible: curl ${API_BASE_URL}/api/health\n3. Verify both devices are on the same network\n4. Check firewall settings`;
+          if (isProduction) {
+            errorMsg = `Connection timeout after 10 seconds.\n\nTrying to connect to: ${API_BASE_URL}\nPlatform: ${Platform.OS}\n\nPlease check:\n1. Your internet connection is stable\n2. Server is accessible: ${API_BASE_URL}/api/health\n3. Try again in a few moments\n\nIf the problem persists, contact support.`;
+          } else {
+            errorMsg = `Connection timeout after 10 seconds.\n\nTrying to connect to: ${API_BASE_URL}\nPlatform: ${Platform.OS}\n\nTroubleshooting:\n1. Ensure backend server is running: cd backend && npm run dev\n2. Check if server is accessible: curl ${API_BASE_URL}/api/health\n3. Verify both devices are on the same network\n4. Check firewall settings`;
+          }
         } else {
-          errorMsg = `Unable to connect to server.\n\nConnection URL: ${API_BASE_URL}\n\nPlease verify:\n1. Backend server is running on port 3002\n2. Server is accessible at: ${API_BASE_URL}/api/health\n3. Both devices are on the same Wi-Fi network\n4. No firewall blocking port 3002`;
+          const isLocalhost = API_BASE_URL.includes('localhost') || API_BASE_URL.includes('127.0.0.1');
+          const isAndroidEmulator = API_BASE_URL.includes('10.0.2.2');
+          
+          if (isAndroidEmulator) {
+            errorMsg = `Unable to connect to server.\n\nConnection URL: ${API_BASE_URL}\nPlatform: ${Platform.OS}\n\nFor Android Emulator:\n1. Ensure backend server is running: cd backend && npm run dev\n2. Server must be listening on 0.0.0.0 (not just localhost)\n3. Try using your computer's IP instead:\n   Create mobile/.env with: EXPO_PUBLIC_API_URL=http://autoassist.com.my:3002\n4. Restart Expo: npx expo start --clear`;
+          } else if (isLocalhost) {
+            errorMsg = `Unable to connect to server.\n\nConnection URL: ${API_BASE_URL}\nPlatform: ${Platform.OS}\n\nIf you're using a PHYSICAL DEVICE:\n1. Create mobile/.env file with:\n   EXPO_PUBLIC_API_URL=http://autoassist.com.my:3002\n2. Restart Expo: npx expo start --clear\n\nIf you're using iOS SIMULATOR:\n1. Ensure backend server is running: cd backend && npm run dev\n2. Restart Expo: npx expo start --clear\n3. Check: curl http://localhost:3002/api/health`;
+          } else {
+            // Production server error message
+            const isProduction = API_BASE_URL.includes('autoassist.com.my') || API_BASE_URL.includes('167.71.199.165');
+            if (isProduction) {
+              errorMsg = `Unable to connect to server.\n\nConnection URL: ${API_BASE_URL}\nPlatform: ${Platform.OS}\n\nPlease verify:\n1. You have an active internet connection\n2. Server is accessible: ${API_BASE_URL}/api/health\n3. Check if the server is online\n4. Try again in a few moments\n\nIf the problem persists, contact support.`;
+            } else {
+              errorMsg = `Unable to connect to server.\n\nConnection URL: ${API_BASE_URL}\nPlatform: ${Platform.OS}\n\nPlease verify:\n1. Backend server is running: cd backend && npm run dev\n2. Server is accessible: curl ${API_BASE_URL}/api/health\n3. Both devices are on the same Wi-Fi network\n4. No firewall blocking port 3002\n5. Restart Expo: npx expo start --clear`;
+            }
+          }
         }
         throw new Error(errorMsg);
       }

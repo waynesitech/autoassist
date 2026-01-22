@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://autoassist.com.my:3002/api';
+// Default to localhost for local development. Override with VITE_API_URL environment variable if needed
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

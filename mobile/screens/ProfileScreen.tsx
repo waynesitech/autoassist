@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, Alert, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ProfileSubView, Workshop, User, CarInfo } from '../types';
 import { api } from '../services/api';
@@ -627,13 +627,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, isDarkMode, sub
         contentContainerStyle={styles.content}
       >
         <Header title="Edit Profile" />
-        <View style={styles.avatarContainer}>
-          <Image source={{ uri: 'https://picsum.photos/id/64/200/200' }} style={styles.avatar} />
-          <TouchableOpacity style={styles.cameraButton}>
-            <Ionicons name="camera" size={16} color="#fff" />
-          </TouchableOpacity>
-        </View>
-
         <View style={styles.form}>
           <Text style={[styles.label, { color: isDarkMode ? '#475569' : '#64748b' }]}>Full Name</Text>
           <TextInput
@@ -701,11 +694,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, isDarkMode, sub
       style={[styles.container, { backgroundColor: isDarkMode ? '#020617' : '#f8fafc' }]}
       contentContainerStyle={styles.content}
     >
+      <Text style={[styles.profileTitle, { color: isDarkMode ? '#fff' : '#0f172a' }]}>My Profile</Text>
+      <Text style={[styles.profileSubtitle, { color: isDarkMode ? '#64748b' : '#94a3b8' }]}>Manage your account settings and preferences</Text>
+      
       <View style={styles.profileHeader}>
-        <View style={[styles.avatarLarge, { borderColor: '#f97316' }]}>
-          <Image source={{ uri: 'https://picsum.photos/id/64/200/200' }} style={styles.avatarLargeImage} />
-          <View style={styles.onlineIndicator} />
-        </View>
         <Text style={[styles.userName, { color: isDarkMode ? '#fff' : '#0f172a' }]}>{user?.name || 'User'}</Text>
         <Text style={[styles.userEmail, { color: isDarkMode ? '#64748b' : '#94a3b8' }]}>{user?.email || ''}</Text>
       </View>
@@ -791,6 +783,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  profileTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  profileSubtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 24,
+  },
   profileHeader: {
     alignItems: 'center',
     marginBottom: 32,
@@ -821,12 +823,12 @@ const styles = StyleSheet.create({
     borderColor: '#020617',
   },
   userName: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   userEmail: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: '500',
   },
   statsGrid: {
