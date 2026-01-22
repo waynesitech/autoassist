@@ -14,7 +14,7 @@ function getApiBaseUrl(): string {
   }
   
   // Always use production URL
-  return 'http://autoassist.com.my';
+  return 'https://autoassist.com.my';
 }
 
 const API_BASE_URL = getApiBaseUrl();
@@ -106,9 +106,9 @@ class AutoAssistAPI {
           const isAndroidEmulator = API_BASE_URL.includes('10.0.2.2');
           
           if (isAndroidEmulator) {
-            errorMsg = `Unable to connect to server.\n\nConnection URL: ${API_BASE_URL}\nPlatform: ${Platform.OS}\n\nFor Android Emulator:\n1. Ensure backend server is running: cd backend && npm run dev\n2. Server must be listening on 0.0.0.0 (not just localhost)\n3. Try using your computer's IP instead:\n   Create mobile/.env with: EXPO_PUBLIC_API_URL=http://autoassist.com.my:3002\n4. Restart Expo: npx expo start --clear`;
+            errorMsg = `Unable to connect to server.\n\nConnection URL: ${API_BASE_URL}\nPlatform: ${Platform.OS}\n\nFor Android Emulator:\n1. Ensure backend server is running: cd backend && npm run dev\n2. Server must be listening on 0.0.0.0 (not just localhost)\n3. Try using your computer's IP instead:\n   Create mobile/.env with: EXPO_PUBLIC_API_URL=https://autoassist.com.my:3002\n4. Restart Expo: npx expo start --clear`;
           } else if (isLocalhost) {
-            errorMsg = `Unable to connect to server.\n\nConnection URL: ${API_BASE_URL}\nPlatform: ${Platform.OS}\n\nIf you're using a PHYSICAL DEVICE:\n1. Create mobile/.env file with:\n   EXPO_PUBLIC_API_URL=http://autoassist.com.my:3002\n2. Restart Expo: npx expo start --clear\n\nIf you're using iOS SIMULATOR:\n1. Ensure backend server is running: cd backend && npm run dev\n2. Restart Expo: npx expo start --clear\n3. Check: curl http://localhost:3002/api/health`;
+            errorMsg = `Unable to connect to server.\n\nConnection URL: ${API_BASE_URL}\nPlatform: ${Platform.OS}\n\nIf you're using a PHYSICAL DEVICE:\n1. Create mobile/.env file with:\n   EXPO_PUBLIC_API_URL=https://autoassist.com.my:3002\n2. Restart Expo: npx expo start --clear\n\nIf you're using iOS SIMULATOR:\n1. Ensure backend server is running: cd backend && npm run dev\n2. Restart Expo: npx expo start --clear\n3. Check: curl http://localhost:3002/api/health`;
           } else {
             // Production server error message
             const isProduction = API_BASE_URL.includes('autoassist.com.my') || API_BASE_URL.includes('167.71.199.165');

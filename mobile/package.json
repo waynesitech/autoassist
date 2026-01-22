@@ -43,6 +43,7 @@
     "@types/react": "~19.1.10",
     "babel-plugin-inline-dotenv": "^1.7.0",
     "babel-preset-expo": "~54.0.9",
+    "expo-build-properties": "^1.0.10",
     "typescript": "~5.9.2"
   },
   "private": true

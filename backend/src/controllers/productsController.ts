@@ -448,7 +448,7 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
       throw error;
     }
 
-    const API_BASE_URL = process.env.API_BASE_URL || 'http://autoassist.com.my';
+    const API_BASE_URL = process.env.API_BASE_URL || 'https://autoassist.com.my';
     const imageUrl = `${API_BASE_URL}/static/mobile/assets/img/${req.file.filename}`;
 
     res.json({

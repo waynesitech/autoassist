@@ -97,7 +97,7 @@ const Products = () => {
   };
 
   const handleSelectImage = (imagePath: string) => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://autoassist.com.my/api';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://autoassist.com.my/api';
     const baseUrl = API_BASE_URL.replace('/api', '');
     const filename = imagePath.split('/').pop() || imagePath;
     const imageUrl = `${baseUrl}/static/mobile/assets/img/${filename}`;
@@ -397,7 +397,7 @@ const Products = () => {
                     gap: '12px' 
                   }}>
                     {availableImages.map((img: any, index: number) => {
-                      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://autoassist.com.my/api';
+                      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://autoassist.com.my/api';
                       const baseUrl = API_BASE_URL.replace('/api', '');
                       const imageUrl = `${baseUrl}/static/mobile/assets/img/${img.filename}`;
                       return (
