@@ -1,0 +1,8 @@
+{
+  "name": "AutoAssist Malaysia - Towing & Roadside Portal",
+  "description": "A comprehensive car towing and mobile application development ecosystem for autoassist.com.my, featuring AI-powered roadside assistance, quotation management, and real-time job tracking.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
