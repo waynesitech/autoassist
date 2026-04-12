@@ -8,7 +8,11 @@
   },
   "scripts": {
     "dev:backend": "cd server && npm run dev",
-    "dev:mobile": "cd mobile && npm start",
+    "dev:mobile": "cd mobile && npx expo start --lan",
+    "dev:mobile:check": "cd mobile && npm run check:lan",
+    "dev:mobile:usb-android": "cd mobile && npm run start:usb-android",
+    "dev:mobile:tunnel": "cd mobile && npx expo start --tunnel",
+    "mobile:expo": "cd mobile && npx expo",
     "dev:all": "concurrently -n \"BACKEND,MOBILE\" -c \"cyan,magenta\" \"npm run dev:backend\" \"npm run dev:mobile\"",
     "install:all": "npm install && cd server && npm install && cd ../mobile && npm install",
     "build:backend": "cd server && npm run build"

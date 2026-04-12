@@ -175,12 +175,11 @@ class AutoAssistAPI {
     return response.success;
   }
 
-  async createQuotation(data: any): Promise<boolean> {
-    const response = await this.fetchAPI<{ success: boolean }>('/api/quotation', {
+  async createQuotation(data: any): Promise<{ success: boolean; transaction?: Transaction }> {
+    return this.fetchAPI<{ success: boolean; transaction?: Transaction }>('/api/quotation', {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    return response.success;
   }
 
   async checkout(cart: CartItem[], workshop: Workshop, total: number, userId: number | null = null): Promise<boolean> {

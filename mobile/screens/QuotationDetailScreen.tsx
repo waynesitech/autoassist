@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Linking, A
 import { Ionicons } from '@expo/vector-icons';
 import { Transaction, Workshop } from '../types';
 import { api } from '../services/api';
+import { ADMIN_WHATSAPP_PHONE } from '../constants';
 
 interface QuotationDetailScreenProps {
   visible: boolean;
@@ -64,9 +65,7 @@ const QuotationDetailScreen: React.FC<QuotationDetailScreenProps> = ({
       return;
     }
 
-    // Admin WhatsApp number - update this with your actual admin contact number
-    // Format: country code + number without + or spaces (e.g., 60123456789 for Malaysia)
-    const adminPhoneNumber = '60123456789'; // TODO: Replace with actual admin phone number or get from config/API
+    const adminPhoneNumber = ADMIN_WHATSAPP_PHONE;
     const message = `Hello, I have a question about my quotation ${quotation.id}`;
     const whatsappUrl = `https://wa.me/${adminPhoneNumber}?text=${encodeURIComponent(message)}`;
     

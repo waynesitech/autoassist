@@ -3,11 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image,
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Workshop, Transaction } from '../types';
-import { WORKSHOPS } from '../constants';
+import { WORKSHOP_BANNER_IMAGE } from '../constants';
 import { analyzeCarCondition } from '../services/geminiService';
 import { api } from '../services/api';
 import { sessionStorage } from '../services/sessionStorage';
-import { WORKSHOP_BANNER_IMAGE } from '../constants';
 import QuotationDetailScreen from './QuotationDetailScreen';
 
 interface QuotationScreenProps {

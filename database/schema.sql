@@ -14,6 +14,16 @@ CREATE TABLE IF NOT EXISTS workshops (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Users table (before transactions: transactions.user_id FK)
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  phone VARCHAR(20),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Transactions table
 CREATE TABLE IF NOT EXISTS transactions (
   id VARCHAR(50) PRIMARY KEY,
@@ -22,7 +32,10 @@ CREATE TABLE IF NOT EXISTS transactions (
   date DATE NOT NULL,
   amount DECIMAL(10,2) NOT NULL,
   status ENUM('pending', 'completed', 'ongoing', 'cancelled') NOT NULL DEFAULT 'pending',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  user_id INT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_user_id (user_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- Products table
@@ -37,16 +50,6 @@ CREATE TABLE IF NOT EXISTS products (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (workshop_id) REFERENCES workshops(id) ON DELETE SET NULL,
   INDEX idx_workshop_id (workshop_id)
-);
-
--- Users table
-CREATE TABLE IF NOT EXISTS users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  email VARCHAR(255) NOT NULL UNIQUE,
-  password VARCHAR(255) NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  phone VARCHAR(20),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Quotations table
@@ -157,6 +160,21 @@ CREATE TABLE IF NOT EXISTS shop_orders (
   INDEX idx_date (date)
 );
 
+-- Towing fixed route charges (origin → via police station → destination), amounts in MYR
+CREATE TABLE IF NOT EXISTS towing_location_charges (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  origin_location VARCHAR(255) NOT NULL,
+  via_location VARCHAR(255) NOT NULL,
+  destination_location VARCHAR(255) NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  currency CHAR(3) NOT NULL DEFAULT 'MYR',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_route (origin_location, via_location, destination_location),
+  INDEX idx_origin (origin_location),
+  INDEX idx_destination (destination_location)
+);
+
 -- Shop Order Items table (for individual items in each order)
 CREATE TABLE IF NOT EXISTS shop_order_items (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -172,6 +190,36 @@ CREATE TABLE IF NOT EXISTS shop_order_items (
   INDEX idx_order_id (order_id),
   INDEX idx_product_id (product_id)
 );
+
+INSERT INTO towing_location_charges (origin_location, via_location, destination_location, amount) VALUES
+('KL', 'KL BALAI', 'Segambut', 250.00),
+('Ampang', 'Ampang BALAI', 'Segambut', 250.00),
+('CHERAS', 'KL BALAI', 'Segambut', 250.00),
+('ULU KELANG', 'AMPANG BALAI', 'Segambut', 250.00),
+('DESA PETALING', 'SRI PETALING BALAI', 'Segambut', 280.00),
+('SG BESI', 'SRI PETALING BALAI', 'Segambut', 280.00),
+('BUKIT JALIL', 'SRI PETALING BALAI', 'Segambut', 280.00),
+('SERDANG', 'KINRARA BALAI', 'Segambut', 300.00),
+('Seri kembangan', 'KINRARA BALAI', 'Segambut', 350.00),
+('balakong', 'kajang BALAI', 'Segambut', 300.00),
+('semenyih', 'kajang BALAI', 'Segambut', 350.00),
+('Bangi', 'kajang BALAI', 'Segambut', 330.00),
+('cheras Batu 9', 'kajang BALAI', 'Segambut', 300.00),
+('Puchong', 'KINRARA BALAI', 'Segambut', 280.00),
+('Subang', 'USJ BALAI', 'Segambut', 280.00),
+('PJ', 'PJ BALAI', 'Segambut', 250.00),
+('Sg Buloh', 'Sg Buloh BALAI', 'Segambut', 250.00),
+('SRI DAMANSARA', 'KOTA DAMANSARA BALAI', 'Segambut', 250.00),
+('RAWANG', 'selayang BALAI', 'Segambut', 280.00),
+('Shah Alam', 'Shah Alam BALAI', 'Segambut', 280.00),
+('Klang', 'Klang BALAI', 'Segambut', 350.00),
+('KEPONG', 'KEPONG BALAI', 'Segambut', 220.00),
+('Batu caves', 'selayang BALAI', 'Segambut', 220.00),
+('PUTRAJAYA', 'SALAK TINGGI BALAI', 'Segambut', 450.00),
+('KLIA', 'sepang BALAI', 'Segambut', 500.00),
+('Nilai', 'Nilai BALAI', 'Segambut', 480.00),
+('Seremban', 'Seremban BALAI', 'Segambut', 500.00)
+ON DUPLICATE KEY UPDATE amount=VALUES(amount);
 
 -- Insert initial workshops data
 INSERT INTO workshops (name, rating, location, icon) VALUES

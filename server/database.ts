@@ -119,6 +119,34 @@ export async function initializeDatabase(): Promise<void> {
       )
     `);
 
+    try {
+      await pool.query('ALTER TABLE transactions ADD COLUMN user_id INT NULL');
+    } catch (error: any) {
+      if (!error.message?.includes('Duplicate column name')) {
+        console.warn('Could not add transactions.user_id:', error.message);
+      }
+    }
+    try {
+      await pool.query('ALTER TABLE transactions ADD INDEX idx_user_id (user_id)');
+    } catch (error: any) {
+      if (!error.message?.includes('Duplicate key name') && !error.message?.includes('already exists')) {
+        console.warn('Could not add transactions idx_user_id:', error.message);
+      }
+    }
+    try {
+      await pool.query(
+        'ALTER TABLE transactions ADD CONSTRAINT fk_transactions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL'
+      );
+    } catch (error: any) {
+      if (
+        !error.message?.includes('Duplicate') &&
+        !error.message?.includes('already exists') &&
+        !error.message?.includes('check that column/key exists')
+      ) {
+        console.warn('Could not add transactions user FK:', error.message);
+      }
+    }
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS vehicles (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -280,6 +308,59 @@ export async function initializeDatabase(): Promise<void> {
         INDEX idx_product_id (product_id)
       )
     `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS towing_location_charges (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        origin_location VARCHAR(255) NOT NULL,
+        via_location VARCHAR(255) NOT NULL,
+        destination_location VARCHAR(255) NOT NULL,
+        amount DECIMAL(10,2) NOT NULL,
+        currency CHAR(3) NOT NULL DEFAULT 'MYR',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_route (origin_location, via_location, destination_location),
+        INDEX idx_origin (origin_location),
+        INDEX idx_destination (destination_location)
+      )
+    `);
+
+    const [towingRateRows] = await pool.query('SELECT COUNT(*) as count FROM towing_location_charges') as any;
+    if (towingRateRows[0].count === 0) {
+      const rows: [string, string, string, number][] = [
+        ['KL', 'KL BALAI', 'Segambut', 250],
+        ['Ampang', 'Ampang BALAI', 'Segambut', 250],
+        ['CHERAS', 'KL BALAI', 'Segambut', 250],
+        ['ULU KELANG', 'AMPANG BALAI', 'Segambut', 250],
+        ['DESA PETALING', 'SRI PETALING BALAI', 'Segambut', 280],
+        ['SG BESI', 'SRI PETALING BALAI', 'Segambut', 280],
+        ['BUKIT JALIL', 'SRI PETALING BALAI', 'Segambut', 280],
+        ['SERDANG', 'KINRARA BALAI', 'Segambut', 300],
+        ['Seri kembangan', 'KINRARA BALAI', 'Segambut', 350],
+        ['balakong', 'kajang BALAI', 'Segambut', 300],
+        ['semenyih', 'kajang BALAI', 'Segambut', 350],
+        ['Bangi', 'kajang BALAI', 'Segambut', 330],
+        ['cheras Batu 9', 'kajang BALAI', 'Segambut', 300],
+        ['Puchong', 'KINRARA BALAI', 'Segambut', 280],
+        ['Subang', 'USJ BALAI', 'Segambut', 280],
+        ['PJ', 'PJ BALAI', 'Segambut', 250],
+        ['Sg Buloh', 'Sg Buloh BALAI', 'Segambut', 250],
+        ['SRI DAMANSARA', 'KOTA DAMANSARA BALAI', 'Segambut', 250],
+        ['RAWANG', 'selayang BALAI', 'Segambut', 280],
+        ['Shah Alam', 'Shah Alam BALAI', 'Segambut', 280],
+        ['Klang', 'Klang BALAI', 'Segambut', 350],
+        ['KEPONG', 'KEPONG BALAI', 'Segambut', 220],
+        ['Batu caves', 'selayang BALAI', 'Segambut', 220],
+        ['PUTRAJAYA', 'SALAK TINGGI BALAI', 'Segambut', 450],
+        ['KLIA', 'sepang BALAI', 'Segambut', 500],
+        ['Nilai', 'Nilai BALAI', 'Segambut', 480],
+        ['Seremban', 'Seremban BALAI', 'Segambut', 500],
+      ];
+      await pool.query(
+        'INSERT INTO towing_location_charges (origin_location, via_location, destination_location, amount) VALUES ?',
+        [rows]
+      );
+    }
 
     // Clear all workshops and insert only the correct one
     // Delete child records first to avoid foreign key constraint violations
