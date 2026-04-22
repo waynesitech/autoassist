@@ -91,6 +91,25 @@ app.get('/api/health', async (req: Request, res: Response) => {
   }
 });
 
+const sendWhatsAppHandler = async (req: Request, res: Response) => {
+  const { to, message } = req.body ?? {};
+  if (!to || !message) {
+    return res.status(400).json({ error: 'Missing required fields: to, message' });
+  }
+
+  try {
+    const { sendTwilioWhatsAppMessage } = await import('./services/whatsappQuotationNotify.js');
+    const sid = await sendTwilioWhatsAppMessage(String(to), String(message));
+    return res.json({ success: true, sid });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    return res.status(500).json({ success: false, error: detail });
+  }
+};
+
+app.post('/send-whatsapp', sendWhatsAppHandler);
+app.post('/api/send-whatsapp', sendWhatsAppHandler);
+
 // API Routes
 // Mount nested routes first to avoid conflicts
 app.use('/api/users', vehiclesRoutes);

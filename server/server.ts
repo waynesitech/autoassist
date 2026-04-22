@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import pool, { initializeDatabase } from './database.js';
-import { notifyQuotationSubmitted } from './whatsappQuotationNotify.js';
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
 import { Workshop, Transaction, User, CartItem } from '../types.js';
+import { notifyQuotationSubmitted } from './whatsappQuotationNotify.js';
 
 dotenv.config();
 
@@ -131,21 +131,23 @@ app.post('/api/quotation', async (req: Request, res: Response) => {
       [id, userId || null, workshopId, model, year, engine, chassis, description || null, quoteType || 'brief', imagesJson, amount, status, date]
     );
 
-    const [workshopRows] = await pool.query('SELECT name FROM workshops WHERE id = ?', [workshopId]) as any;
-    const workshopName = workshopRows[0]?.name ?? null;
-
-    void notifyQuotationSubmitted({
-      transactionId: id,
-      type,
-      model,
-      year,
-      engine,
-      chassis,
-      description: description ?? null,
-      quoteType: quoteType || 'brief',
-      workshopName,
-      amount: typeof amount === 'number' ? amount : parseFloat(String(amount)),
-    }).catch((err) => console.error('[whatsapp] quotation notify:', err));
+    // Keep quotation creation successful even if WhatsApp delivery fails.
+    try {
+      await notifyQuotationSubmitted({
+        transactionId: id,
+        type,
+        model,
+        year,
+        engine,
+        chassis,
+        description: description || null,
+        quoteType: quoteType || 'brief',
+        workshopName: null,
+        amount,
+      });
+    } catch (notifyError) {
+      console.warn('[whatsapp] Failed to send quotation notification:', notifyError);
+    }
 
     const [rows] = await pool.query('SELECT * FROM transactions WHERE id = ?', [id]) as any;
     res.status(201).json({ success: true, transaction: rows[0] });

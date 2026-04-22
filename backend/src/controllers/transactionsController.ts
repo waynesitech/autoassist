@@ -248,21 +248,27 @@ export const createQuotation = async (req: Request, res: Response, next: NextFun
       [id, userId || null, workshopId, model, year, engine, chassis, description || null, quoteType || 'brief', imagesJson, amount, status, date]
     );
 
-    const [workshopRows] = await pool.query('SELECT name FROM workshops WHERE id = ?', [workshopId]) as any;
-    const workshopName = workshopRows[0]?.name ?? null;
+    // Resolve workshop name so the WhatsApp message has full context.
+    const [workshopRows] = await pool.query('SELECT name FROM workshops WHERE id = ? LIMIT 1', [workshopId]) as any;
+    const workshopName = workshopRows?.[0]?.name ?? null;
 
-    void notifyQuotationSubmitted({
-      transactionId: id,
-      type,
-      model,
-      year,
-      engine,
-      chassis,
-      description: description ?? null,
-      quoteType: quoteType || 'brief',
-      workshopName,
-      amount: typeof amount === 'number' ? amount : parseFloat(String(amount)),
-    }).catch((err) => console.error('[whatsapp] quotation notify:', err));
+    // Keep quotation creation successful even if WhatsApp delivery fails.
+    try {
+      await notifyQuotationSubmitted({
+        transactionId: id,
+        type,
+        model,
+        year,
+        engine,
+        chassis,
+        description: description || null,
+        quoteType: quoteType || 'brief',
+        workshopName,
+        amount,
+      });
+    } catch (notifyError) {
+      console.warn('[whatsapp] Failed to send quotation notification:', notifyError);
+    }
 
     const [rows] = await pool.query('SELECT * FROM transactions WHERE id = ?', [id]) as any;
     res.status(201).json({ success: true, transaction: rows[0] });

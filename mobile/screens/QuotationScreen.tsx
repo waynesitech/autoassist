@@ -127,7 +127,8 @@ const QuotationScreen: React.FC<QuotationScreenProps> = ({ isDarkMode, selectedW
         amount: quoteType === 'brief' ? 5 : 15,
         userId: user?.id || null,
       });
-      Alert.alert('Success', 'Quotation request submitted!');
+
+      Alert.alert('Success', 'Quotation request submitted. WhatsApp notification has been sent.');
       // Reset form after successful submission
       setForm({ model: '', year: '', chassis: '', engine: '', description: '' });
       setImages([]);
