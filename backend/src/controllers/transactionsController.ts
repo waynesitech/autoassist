@@ -252,30 +252,39 @@ export const createQuotation = async (req: Request, res: Response, next: NextFun
     const [workshopRows] = await pool.query('SELECT name FROM workshops WHERE id = ? LIMIT 1', [workshopId]) as any;
     const workshopName = workshopRows?.[0]?.name ?? null;
 
-    // Keep quotation creation successful even if WhatsApp delivery fails.
-    let whatsappNotified = false;
-    let whatsappResults: { phone: string; delivered: boolean; error?: string }[] = [];
-    try {
-      const notifyOutcome = await notifyQuotationSubmitted({
-        transactionId: id,
-        type,
-        model,
-        year,
-        engine,
-        chassis,
-        description: description || null,
-        quoteType: quoteType || 'brief',
-        workshopName,
-        amount,
-      });
-      whatsappNotified = notifyOutcome.notified;
-      whatsappResults = notifyOutcome.results;
-    } catch (notifyError) {
-      console.warn('[whatsapp] Failed to send quotation notification:', notifyError);
-    }
-
     const [rows] = await pool.query('SELECT * FROM transactions WHERE id = ?', [id]) as any;
-    res.status(201).json({ success: true, transaction: rows[0], whatsappNotified, whatsappResults });
+
+    // Respond immediately — WhatsApp runs in background (avoids mobile 10s timeout).
+    res.status(201).json({
+      success: true,
+      transaction: rows[0],
+      whatsappPending: true,
+    });
+
+    const notifyPayload = {
+      transactionId: id,
+      type,
+      model,
+      year,
+      engine,
+      chassis,
+      description: description || null,
+      quoteType: quoteType || 'brief',
+      workshopName,
+      amount,
+    };
+
+    void notifyQuotationSubmitted(notifyPayload)
+      .then((outcome) => {
+        if (outcome.notified) {
+          console.log('[whatsapp] Quotation notifications sent for', id, outcome.results);
+        } else {
+          console.warn('[whatsapp] No quotation notifications confirmed for', id, outcome.results);
+        }
+      })
+      .catch((notifyError) => {
+        console.warn('[whatsapp] Failed to send quotation notification for', id, notifyError);
+      });
   } catch (error) {
     next(error);
   }

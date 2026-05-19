@@ -37,7 +37,8 @@ async function main() {
   console.log('Skipping isolated plain-text ping — covered by step 2.\n');
 
   console.log('[2/2] Quotation notification...');
-  const { notified: ok, results } = await notifyQuotationSubmitted({
+  const { notified: ok, results } = await notifyQuotationSubmitted(
+    {
     transactionId: `TX-TEST-${Date.now().toString().slice(-4)}`,
     type: 'Brief',
     model: 'Honda Civic RS',
@@ -48,7 +49,9 @@ async function main() {
     quoteType: 'brief',
     workshopName: 'Test Workshop',
     amount: 5,
-  });
+  },
+    { waitForDelivery: true }
+  );
   console.log('whatsappNotified:', ok);
   console.log('Per recipient:', JSON.stringify(results, null, 2));
 

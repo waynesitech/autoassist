@@ -135,9 +135,13 @@ export async function sendTwilioWhatsAppTemplateMessage(
 async function notifyOneRecipient(
   toPhone: string,
   payload: QuotationWhatsAppPayload,
-  templateSid: string
+  templateSid: string,
+  waitForDelivery: boolean
 ): Promise<boolean> {
-  const sendAndConfirm = async (messageSid: string): Promise<boolean> => {
+  const confirmSend = async (messageSid: string): Promise<boolean> => {
+    if (!waitForDelivery) {
+      return true;
+    }
     const delivered = await waitForWhatsAppDelivery(messageSid);
     if (!delivered) {
       console.warn('[whatsapp] Message queued but not confirmed delivered within timeout:', messageSid);
@@ -155,7 +159,7 @@ async function notifyOneRecipient(
         '5': `RM ${payload.amount}`,
       };
       const sid = await sendTwilioWhatsAppTemplateMessage(toPhone, templateSid, contentVariables);
-      return await sendAndConfirm(sid);
+      return await confirmSend(sid);
     } catch (templateError) {
       console.warn(`[whatsapp] Template send failed for ${toPhone}, falling back to plain text:`, templateError);
     }
@@ -163,7 +167,7 @@ async function notifyOneRecipient(
 
   const text = buildMessage(payload);
   const sid = await sendTwilioWhatsAppMessage(toPhone, text);
-  return await sendAndConfirm(sid);
+  return await confirmSend(sid);
 }
 
 export type WhatsAppNotifyResult = {
@@ -172,10 +176,17 @@ export type WhatsAppNotifyResult = {
   error?: string;
 };
 
+export type NotifyQuotationOptions = {
+  /** When false (default for API requests), return after Twilio accepts the message. */
+  waitForDelivery?: boolean;
+};
+
 /** Sends quotation WhatsApp to all configured receivers. */
 export async function notifyQuotationSubmitted(
-  payload: QuotationWhatsAppPayload
+  payload: QuotationWhatsAppPayload,
+  options: NotifyQuotationOptions = {}
 ): Promise<{ notified: boolean; results: WhatsAppNotifyResult[] }> {
+  const waitForDelivery = options.waitForDelivery ?? false;
   const phones = getNotifyPhones();
   const templateSid = process.env.TWILIO_QUOTATION_TEMPLATE_SID?.trim() || DEFAULT_TWILIO_QUOTATION_TEMPLATE_SID;
 
@@ -184,7 +195,7 @@ export async function notifyQuotationSubmitted(
   for (const phone of phones) {
     const normalized = normalizeE164(phone);
     try {
-      const delivered = await notifyOneRecipient(phone, payload, templateSid);
+      const delivered = await notifyOneRecipient(phone, payload, templateSid, waitForDelivery);
       results.push({ phone: normalized, delivered });
       if (delivered) {
         console.log('[whatsapp] Quotation notification delivered to', normalized);

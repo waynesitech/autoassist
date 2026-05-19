@@ -41,7 +41,7 @@ class AutoAssistAPI {
     ]);
   }
 
-  private async fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  private async fetchAPI<T>(endpoint: string, options?: RequestInit, timeoutMs = 10000): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
     
     if (typeof __DEV__ !== 'undefined' && __DEV__) {
@@ -55,7 +55,7 @@ class AutoAssistAPI {
           'Content-Type': 'application/json',
           ...options?.headers,
         },
-      }, 10000); // 10 second timeout
+      }, timeoutMs);
 
       // Check if response has content before parsing JSON
       const contentType = response.headers.get('content-type');
@@ -178,18 +178,24 @@ class AutoAssistAPI {
   async createQuotation(data: any): Promise<{
     success: boolean;
     transaction?: Transaction;
+    whatsappPending?: boolean;
     whatsappNotified?: boolean;
     whatsappResults?: { phone: string; delivered: boolean; error?: string }[];
   }> {
     return this.fetchAPI<{
       success: boolean;
       transaction?: Transaction;
+      whatsappPending?: boolean;
       whatsappNotified?: boolean;
       whatsappResults?: { phone: string; delivered: boolean; error?: string }[];
-    }>('/api/quotation', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    }>(
+      '/api/quotation',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+      90000
+    );
   }
 
   async checkout(cart: CartItem[], workshop: Workshop, total: number, userId: number | null = null): Promise<boolean> {

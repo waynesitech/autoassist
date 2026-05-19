@@ -128,18 +128,9 @@ const QuotationScreen: React.FC<QuotationScreenProps> = ({ isDarkMode, selectedW
         userId: user?.id || null,
       });
 
-      let successMessage = 'Quotation request submitted.';
-      if (result.whatsappResults?.length) {
-        const lines = result.whatsappResults.map((r) => {
-          const label = r.phone.replace('+60', '0');
-          return r.delivered ? `${label}: sent` : `${label}: not sent${r.error ? ` (${r.error.split('.')[0]})` : ''}`;
-        });
-        successMessage += `\n\nWhatsApp:\n${lines.join('\n')}`;
-      } else if (result.whatsappNotified) {
-        successMessage += ' WhatsApp notification has been sent.';
-      } else {
-        successMessage += ' WhatsApp notification could not be delivered.';
-      }
+      const successMessage = result.whatsappPending
+        ? 'Quotation request submitted. WhatsApp notifications are being sent to receivers.'
+        : 'Quotation request submitted.';
       Alert.alert('Success', successMessage);
       // Reset form after successful submission
       setForm({ model: '', year: '', chassis: '', engine: '', description: '' });
