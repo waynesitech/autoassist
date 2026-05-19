@@ -8,6 +8,9 @@ import twilio from 'twilio';
  * - TWILIO_AUTH_TOKEN
  * - TWILIO_WHATSAPP_FROM (example: whatsapp:+14155238886 for sandbox)
  * - WHATSAPP_NOTIFY_PHONE — one or more receivers, comma-separated (e.g. +60162369283,+60122846084)
+ *
+ * Sends full quotation details as plain text (buildMessage). Set TWILIO_QUOTATION_TEMPLATE_SID
+ * only if plain text is rejected outside the 24h window; the template must define {{1}}–{{8}} in its body.
  */
 
 export type QuotationWhatsAppPayload = {
@@ -34,7 +37,30 @@ function getNotifyPhones(): string[] {
   return phones.length > 0 ? phones : [...DEFAULT_NOTIFY_PHONES];
 }
 const MAX_MESSAGE_LEN = 4000;
-const DEFAULT_TWILIO_QUOTATION_TEMPLATE_SID = 'HXc2295b8a670f0f5bc01227b932db52ef';
+
+/** Twilio error codes / phrases when plain text is rejected (use approved template instead). */
+const TEMPLATE_REQUIRED_PATTERNS = [
+  /63016/,
+  /63007/,
+  /63015/,
+  /outside the allowed window/i,
+  /requires a template/i,
+  /template/i,
+  /session/i,
+];
+
+function getQuotationTemplateSid(): string {
+  return (
+    process.env.TWILIO_QUOTATION_TEMPLATE_SID?.trim() ||
+    process.env.TWILIO_WHATSAPP_TEMPLATE_SID?.trim() ||
+    ''
+  );
+}
+
+function isTemplateRequiredError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return TEMPLATE_REQUIRED_PATTERNS.some((re) => re.test(message));
+}
 
 function buildMessage(p: QuotationWhatsAppPayload): string {
   const lines = [
@@ -55,6 +81,20 @@ function buildMessage(p: QuotationWhatsAppPayload): string {
     text = `${text.slice(0, MAX_MESSAGE_LEN - 24)}\n…(truncated)`;
   }
   return text;
+}
+
+/** Variables for Twilio Content templates — keys must match {{1}}, {{2}}, … in the approved template body. */
+function buildTemplateVariables(p: QuotationWhatsAppPayload): Record<string, string> {
+  return {
+    '1': p.transactionId,
+    '2': `${p.year} ${p.model}`.trim(),
+    '3': p.workshopName ?? '—',
+    '4': `${p.type} / ${p.quoteType}`,
+    '5': `RM ${p.amount}`,
+    '6': p.engine,
+    '7': p.chassis,
+    ...(p.description?.trim() ? { '8': p.description.trim().slice(0, 400) } : {}),
+  };
 }
 
 function normalizeE164(raw: string): string {
@@ -149,24 +189,29 @@ async function notifyOneRecipient(
     return delivered;
   };
 
-  if (templateSid) {
-    try {
-      const contentVariables: Record<string, string> = {
-        '1': payload.transactionId,
-        '2': `${payload.year} ${payload.model}`,
-        '3': payload.workshopName ?? '-',
-        '4': `${payload.type} / ${payload.quoteType}`,
-        '5': `RM ${payload.amount}`,
-      };
-      const sid = await sendTwilioWhatsAppTemplateMessage(toPhone, templateSid, contentVariables);
-      return await confirmSend(sid);
-    } catch (templateError) {
-      console.warn(`[whatsapp] Template send failed for ${toPhone}, falling back to plain text:`, templateError);
+  const text = buildMessage(payload);
+
+  // Prefer full plain-text body (buildMessage). Templates only when configured and plain text is rejected.
+  try {
+    const sid = await sendTwilioWhatsAppMessage(toPhone, text);
+    console.log('[whatsapp] Sent plain-text quotation notify to', normalizeE164(toPhone));
+    return await confirmSend(sid);
+  } catch (plainError) {
+    if (!templateSid || !isTemplateRequiredError(plainError)) {
+      throw plainError;
     }
+    console.warn(
+      `[whatsapp] Plain text rejected for ${toPhone}, retrying with template ${templateSid}:`,
+      plainError instanceof Error ? plainError.message : plainError
+    );
   }
 
-  const text = buildMessage(payload);
-  const sid = await sendTwilioWhatsAppMessage(toPhone, text);
+  const sid = await sendTwilioWhatsAppTemplateMessage(
+    toPhone,
+    templateSid,
+    buildTemplateVariables(payload)
+  );
+  console.log('[whatsapp] Sent template quotation notify to', normalizeE164(toPhone));
   return await confirmSend(sid);
 }
 
@@ -188,7 +233,7 @@ export async function notifyQuotationSubmitted(
 ): Promise<{ notified: boolean; results: WhatsAppNotifyResult[] }> {
   const waitForDelivery = options.waitForDelivery ?? false;
   const phones = getNotifyPhones();
-  const templateSid = process.env.TWILIO_QUOTATION_TEMPLATE_SID?.trim() || DEFAULT_TWILIO_QUOTATION_TEMPLATE_SID;
+  const templateSid = getQuotationTemplateSid();
 
   const results: WhatsAppNotifyResult[] = [];
 

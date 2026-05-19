@@ -100,7 +100,11 @@ export async function initializeDatabase(): Promise<void> {
       await pool.query('ALTER TABLE products ADD CONSTRAINT fk_products_workshop FOREIGN KEY (workshop_id) REFERENCES workshops(id) ON DELETE SET NULL');
     } catch (error: any) {
       // Constraint already exists, ignore error
-      if (!error.message?.includes('Duplicate key name') && !error.message?.includes('already exists')) {
+      if (
+        !error.message?.includes('Duplicate key name') &&
+        !error.message?.includes('Duplicate foreign key constraint name') &&
+        !error.message?.includes('already exists')
+      ) {
         console.warn('Could not add foreign key constraint:', error.message);
       }
     }
@@ -449,7 +453,6 @@ export async function initializeDatabase(): Promise<void> {
       `);
     }
 
-    console.log('Database initialized successfully');
   } catch (error) {
     console.error('Error initializing database:', error);
     throw error;

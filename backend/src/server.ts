@@ -32,8 +32,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Quotations upload base64 photos; default 100kb limit returns 413.
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
 // Serve static files from project root
 // This allows URLs like /static/mobile/assets/img/... to work
@@ -219,7 +220,7 @@ async function startServer() {
     await initializeDatabase();
     console.log('Database initialized successfully');
 
-    app.listen(PORT, '0.0.0.0', () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`\n🚀 Server running on https://autoassist.com.my:${PORT}`);
       console.log(`🌐 Server accessible on network at http://0.0.0.0:${PORT}`);
       console.log(`📡 API endpoints available at https://autoassist.com.my:${PORT}/api`);
@@ -233,6 +234,19 @@ async function startServer() {
       console.log(`   GET    /api/transactions`);
       console.log(`\n💡 To connect from mobile device, use your computer's IP address`);
       console.log(`   Find it with: ifconfig | grep "inet " | grep -v 127.0.0.1\n`);
+    });
+
+    server.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(
+          `\nPort ${PORT} is already in use. On this server the backend runs under PM2:\n` +
+          `  pm2 restart autoassist-backend\n` +
+          `To run "npm run dev" locally, stop PM2 first: pm2 stop autoassist-backend\n`
+        );
+      } else {
+        console.error('Failed to bind server:', err);
+      }
+      process.exit(1);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
