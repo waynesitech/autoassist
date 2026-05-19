@@ -5,7 +5,7 @@
  * - TWILIO_ACCOUNT_SID
  * - TWILIO_AUTH_TOKEN
  * - TWILIO_WHATSAPP_FROM (example: whatsapp:+14155238886 for sandbox)
- * - WHATSAPP_NOTIFY_PHONE (example: +60122846084)
+ * - WHATSAPP_NOTIFY_PHONE — comma-separated receivers (e.g. +60162369283,+60122846084)
  */
 
 export type QuotationWhatsAppPayload = {
@@ -21,7 +21,16 @@ export type QuotationWhatsAppPayload = {
   amount: number;
 };
 
-const DEFAULT_NOTIFY_PHONE = '60122846084';
+const DEFAULT_NOTIFY_PHONES = ['60162369283', '60122846084'];
+
+function getNotifyPhones(): string[] {
+  const raw = process.env.WHATSAPP_NOTIFY_PHONE?.trim();
+  if (!raw) {
+    return [...DEFAULT_NOTIFY_PHONES];
+  }
+  const phones = raw.split(/[,;]/).map((p) => p.trim()).filter(Boolean);
+  return phones.length > 0 ? phones : [...DEFAULT_NOTIFY_PHONES];
+}
 const MAX_MESSAGE_LEN = 4000;
 
 function buildMessage(p: QuotationWhatsAppPayload): string {
@@ -50,21 +59,16 @@ function normalizeE164(raw: string): string {
   return `+${digits}`;
 }
 
-export async function notifyQuotationSubmitted(payload: QuotationWhatsAppPayload): Promise<void> {
-  const text = buildMessage(payload);
-  const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
-  const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
-  const from = process.env.TWILIO_WHATSAPP_FROM?.trim() || 'whatsapp:+14155238886';
-  const toPhone = normalizeE164(process.env.WHATSAPP_NOTIFY_PHONE || DEFAULT_NOTIFY_PHONE);
-
-  if (!accountSid || !authToken) {
-    console.warn('[whatsapp] Missing TWILIO_ACCOUNT_SID or TWILIO_AUTH_TOKEN.');
-    return;
-  }
-
+async function sendToOne(
+  toPhone: string,
+  text: string,
+  accountSid: string,
+  authToken: string,
+  from: string
+): Promise<void> {
   const params = new URLSearchParams({
     From: from,
-    To: `whatsapp:${toPhone}`,
+    To: `whatsapp:${normalizeE164(toPhone)}`,
     Body: text,
   });
   const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
@@ -79,6 +83,28 @@ export async function notifyQuotationSubmitted(payload: QuotationWhatsAppPayload
 
   if (!response.ok) {
     const errorBody = await response.text().catch(() => '');
-    throw new Error(`Twilio WhatsApp send failed: ${response.status} ${errorBody}`);
+    throw new Error(`Twilio WhatsApp send failed to ${toPhone}: ${response.status} ${errorBody}`);
+  }
+}
+
+export async function notifyQuotationSubmitted(payload: QuotationWhatsAppPayload): Promise<void> {
+  const text = buildMessage(payload);
+  const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
+  const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
+  const from = process.env.TWILIO_WHATSAPP_FROM?.trim() || 'whatsapp:+14155238886';
+
+  if (!accountSid || !authToken) {
+    console.warn('[whatsapp] Missing TWILIO_ACCOUNT_SID or TWILIO_AUTH_TOKEN.');
+    return;
+  }
+
+  const phones = getNotifyPhones();
+  for (const phone of phones) {
+    try {
+      await sendToOne(phone, text, accountSid, authToken, from);
+      console.log('[whatsapp] Quotation notification sent to', phone);
+    } catch (error) {
+      console.warn(`[whatsapp] Failed to notify ${phone}:`, error);
+    }
   }
 }

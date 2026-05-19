@@ -3,8 +3,8 @@ import { AdSlide, Product, Transaction, Workshop } from './types';
 export const PRIMARY_BLUE = '#0f172a'; // slate-900
 export const ACCENT_ORANGE = '#f97316'; // orange-500
 
-/** Admin WhatsApp (wa.me): country code + national number without leading 0 (e.g. 0122846084 → 60122846084) */
-export const ADMIN_WHATSAPP_PHONE = '60122846084';
+/** Admin WhatsApp (wa.me): country code + national number without leading 0 (e.g. 016-2369283 → 60162369283) */
+export const ADMIN_WHATSAPP_PHONE = '60162369283';
 
 // Workshop banner image - using require for React Native local images
 export const WORKSHOP_BANNER_IMAGE = require('./assets/img/soan-huat.jpeg');

@@ -253,8 +253,10 @@ export const createQuotation = async (req: Request, res: Response, next: NextFun
     const workshopName = workshopRows?.[0]?.name ?? null;
 
     // Keep quotation creation successful even if WhatsApp delivery fails.
+    let whatsappNotified = false;
+    let whatsappResults: { phone: string; delivered: boolean; error?: string }[] = [];
     try {
-      await notifyQuotationSubmitted({
+      const notifyOutcome = await notifyQuotationSubmitted({
         transactionId: id,
         type,
         model,
@@ -266,12 +268,14 @@ export const createQuotation = async (req: Request, res: Response, next: NextFun
         workshopName,
         amount,
       });
+      whatsappNotified = notifyOutcome.notified;
+      whatsappResults = notifyOutcome.results;
     } catch (notifyError) {
       console.warn('[whatsapp] Failed to send quotation notification:', notifyError);
     }
 
     const [rows] = await pool.query('SELECT * FROM transactions WHERE id = ?', [id]) as any;
-    res.status(201).json({ success: true, transaction: rows[0] });
+    res.status(201).json({ success: true, transaction: rows[0], whatsappNotified, whatsappResults });
   } catch (error) {
     next(error);
   }

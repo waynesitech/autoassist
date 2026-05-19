@@ -114,7 +114,7 @@ const QuotationScreen: React.FC<QuotationScreenProps> = ({ isDarkMode, selectedW
     try {
       // Get user from session storage
       const user = await sessionStorage.getUser();
-      await api.createQuotation({
+      const result = await api.createQuotation({
         type: quoteType === 'brief' ? 'Brief' : 'Detailed',
         model: form.model,
         year: form.year,
@@ -128,7 +128,19 @@ const QuotationScreen: React.FC<QuotationScreenProps> = ({ isDarkMode, selectedW
         userId: user?.id || null,
       });
 
-      Alert.alert('Success', 'Quotation request submitted. WhatsApp notification has been sent.');
+      let successMessage = 'Quotation request submitted.';
+      if (result.whatsappResults?.length) {
+        const lines = result.whatsappResults.map((r) => {
+          const label = r.phone.replace('+60', '0');
+          return r.delivered ? `${label}: sent` : `${label}: not sent${r.error ? ` (${r.error.split('.')[0]})` : ''}`;
+        });
+        successMessage += `\n\nWhatsApp:\n${lines.join('\n')}`;
+      } else if (result.whatsappNotified) {
+        successMessage += ' WhatsApp notification has been sent.';
+      } else {
+        successMessage += ' WhatsApp notification could not be delivered.';
+      }
+      Alert.alert('Success', successMessage);
       // Reset form after successful submission
       setForm({ model: '', year: '', chassis: '', engine: '', description: '' });
       setImages([]);

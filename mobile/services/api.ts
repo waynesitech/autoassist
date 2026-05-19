@@ -14,7 +14,7 @@ function getApiBaseUrl(): string {
   }
   
   // Always use production URL
-  return 'https://autoassist.com.my';
+  return 'http://autoassist.com.my:3002';
 }
 
 const API_BASE_URL = getApiBaseUrl();
@@ -175,8 +175,18 @@ class AutoAssistAPI {
     return response.success;
   }
 
-  async createQuotation(data: any): Promise<{ success: boolean; transaction?: Transaction }> {
-    return this.fetchAPI<{ success: boolean; transaction?: Transaction }>('/api/quotation', {
+  async createQuotation(data: any): Promise<{
+    success: boolean;
+    transaction?: Transaction;
+    whatsappNotified?: boolean;
+    whatsappResults?: { phone: string; delivered: boolean; error?: string }[];
+  }> {
+    return this.fetchAPI<{
+      success: boolean;
+      transaction?: Transaction;
+      whatsappNotified?: boolean;
+      whatsappResults?: { phone: string; delivered: boolean; error?: string }[];
+    }>('/api/quotation', {
       method: 'POST',
       body: JSON.stringify(data),
     });
