@@ -221,9 +221,9 @@ async function startServer() {
     console.log('Database initialized successfully');
 
     const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`\n🚀 Server running on https://autoassist.com.my:${PORT}`);
-      console.log(`🌐 Server accessible on network at http://0.0.0.0:${PORT}`);
-      console.log(`📡 API endpoints available at https://autoassist.com.my:${PORT}/api`);
+      console.log(`\n🚀 Backend listening on 0.0.0.0:${PORT}`);
+      console.log(`📡 Public API (mobile/admin): https://autoassist.com.my/api`);
+      console.log(`🌐 Local health check: http://127.0.0.1:${PORT}/api/health`);
       console.log(`\n📋 Available endpoints:`);
       console.log(`   GET    /api/health`);
       console.log(`   GET    /api/users`);

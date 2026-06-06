@@ -26,15 +26,29 @@ export type QuotationWhatsAppPayload = {
   amount: number;
 };
 
-const DEFAULT_NOTIFY_PHONES = ['60162369283', '60122846084'];
+/** Always notified — merged with WHATSAPP_NOTIFY_PHONE (deduped by E.164). */
+const REQUIRED_NOTIFY_PHONES = ['+60162369283', '+60122846084'];
+
+function phoneKey(raw: string): string {
+  return raw.replace(/[^\d]/g, '');
+}
 
 function getNotifyPhones(): string[] {
-  const raw = process.env.WHATSAPP_NOTIFY_PHONE?.trim();
-  if (!raw) {
-    return [...DEFAULT_NOTIFY_PHONES];
+  const fromEnv = (process.env.WHATSAPP_NOTIFY_PHONE?.trim() || '')
+    .split(/[,;]/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  const merged = [...REQUIRED_NOTIFY_PHONES, ...fromEnv];
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const phone of merged) {
+    const key = phoneKey(phone);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(phone.startsWith('+') ? phone : `+${key}`);
   }
-  const phones = raw.split(/[,;]/).map((p) => p.trim()).filter(Boolean);
-  return phones.length > 0 ? phones : [...DEFAULT_NOTIFY_PHONES];
+  return unique;
 }
 const MAX_MESSAGE_LEN = 4000;
 

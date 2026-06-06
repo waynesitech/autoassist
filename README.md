@@ -68,7 +68,7 @@ A comprehensive mobile application for car towing services, vehicle quotations, 
 
    Create `mobile/.env`:
    ```env
-   EXPO_PUBLIC_API_URL=https://autoassist.com.my:3002
+   EXPO_PUBLIC_API_URL=https://autoassist.com.my
    EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
    ```
 
